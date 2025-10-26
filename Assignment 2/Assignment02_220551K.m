@@ -100,6 +100,17 @@ for im = 1: length(images)
             end
         end
 
+        % Flatten all quantized blocks into one array
+        all_coeffs = cell2mat(quant_blocks(:));
+        
+        % Count zeros
+        num_zeros = sum(all_coeffs(:) == 0);
+        total_coeffs = numel(all_coeffs);
+        
+        % Percentage of zeros
+        percent_zeros = (num_zeros / total_coeffs) * 100;
+        fprintf('Percentage of zeros for %s at Q:%d: %.2f%%\n', image_names(im), Q_levels(q) , percent_zeros);
+
         % Reconstruction of compressed image
         recon_img = zeros(M,N);
 
@@ -116,6 +127,11 @@ for im = 1: length(images)
                     col_start:col_start+block_size-1) = recon_block + 128;
             end
         end
+
+        %  Peak Signal to Noise Ratio(PSNR)
+        sigma_squared = mean(mean((double(recon_img(:)) - double(image(:))).^2));
+        psnr_value = 20 * log10(255 / sqrt(sigma_squared));
+        fprintf('PSNR for for %s at quality %d: %.2f dB\n', image_names(im) ,Q_levels(q), psnr_value);
         
         % Show the reconstructed image and save it
         figure;
